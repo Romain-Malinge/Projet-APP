@@ -12,17 +12,24 @@ def load_camera_calibration(json_path):
 
     return camera_matrix, dist_coeffs
 
+def undistort_points(points, K, D):
+    """
+    Undistort 2D points using OpenCV fisheye model.
+    Supports 8-coefficient distortion (as in Pupil Labs calibration).
+    """
+    
+    src = np.array(points, dtype=np.float64).reshape(-1, 1, 2)  # Nx1x2
+    und = cv2.undistortPoints(src, K, D, P=K)
+    und = und.reshape(-1, 2)
+    return und
 
-def undistort_fisheye_frame(frame, K, D):
+def undistort_frame(frame, K, D):
     """
     Undistort a single frame using OpenCV fisheye model.
     Supports 8-coefficient distortion (as in Pupil Labs calibration).
     """
     h, w = frame.shape[:2]
-    dim = (w, h)
-
-    new_K, _ = cv2.getOptimalNewCameraMatrix(K, D, dim, 0.0, (w, h))
-    map1, map2 = cv2.initUndistortRectifyMap(K, D, np.eye(3), new_K, (w, h), cv2.CV_16SC2)
+    map1, map2 = cv2.initUndistortRectifyMap(K, D, np.eye(3), K, (w, h), cv2.CV_16SC2)
 
     # Apply remapping
     undistorted = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR)
