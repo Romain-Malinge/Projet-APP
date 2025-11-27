@@ -36,7 +36,7 @@ def undistort_fisheye_frame(frame, K, D):
 
     return undistorted
 
-def annotate_video(camera_file, input_video, output_video, db_path):
+def undistort_video(camera_file, input_video, output_video, db_path):
     cap = cv2.VideoCapture(input_video)
     fps = cap.get(cv2.CAP_PROP_FPS)
     dt_ns = 1e9 / fps
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     output_video = "undistorted.mp4"
     db_path = "database.sqlite"
 
-    annotate_video(camera_file, input_video, output_video, db_path)
+    undistort_video(camera_file, input_video, output_video, db_path)
