@@ -9,7 +9,7 @@ from ptsInterretPosterImages import load_posters
 VIDEO_PATH = "data/AcquisitionsEyeTracker/sujet_f-42e0d11a/e0b2c246_0.0-138.011.mp4"
 WORLD_TS_CSV = "data/AcquisitionsEyeTracker/sujet_f-42e0d11a/world_timestamps.csv"
 FIXATIONS_CSV = "data/AcquisitionsEyeTracker/sujet_f-42e0d11a/fixations.csv"
-POSTER_DIR = "data/Affiches"         
+POSTER_DIR = "data/Affiches"
 OUTPUT_DETECTIONS_CSV = "output/poster_detections.csv"
 
 # Taille de la ROI autour du regard (en pixels)
