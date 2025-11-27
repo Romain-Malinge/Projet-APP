@@ -8,8 +8,8 @@ from structures import Fixation
 import sqlite3
 
 WORLD_TS_COL = "timestamp [ns]"          
-FIX_START_COL = "start_timestamp [ns]"   # début fixation
-FIX_END_COL = "end_timestamp [ns]"       # fin fixation
+FIX_START_COL = "start timestamp [ns]"   # début fixation
+FIX_END_COL = "end timestamp [ns]"       # fin fixation
 FIX_X_COL = "fixation x [px]"            # coordonnée x du regard 
 FIX_Y_COL = "fixation y [px]"            # coordonnée y du regard 
 FIX_X_IS_NORMALIZED = False              # True si x,y ∈ [0,1], False si déjà en pixels
