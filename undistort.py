@@ -21,19 +21,12 @@ def undistort_fisheye_frame(frame, K, D):
     h, w = frame.shape[:2]
     dim = (w, h)
 
-    # Create new camera matrix for undistortion (can modify balance param if needed)
-    new_K = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(
-        K, D, dim, np.eye(3), balance=0.0
-    )
-
-    # Precompute undistortion maps
-    map1, map2 = cv2.fisheye.initUndistortRectifyMap(
-        K, D, np.eye(3), new_K, dim, cv2.CV_16SC2
-    )
+    new_K, _ = cv2.getOptimalNewCameraMatrix(K, D, dim, 0.0, (w, h))
+    map1, map2 = cv2.initUndistortRectifyMap(K, D, np.eye(3), new_K, (w, h), cv2.CV_16SC2)
 
     # Apply remapping
     undistorted = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR)
-
+    
     return undistorted
 
 def undistort_video(camera_file, input_video, output_video, db_path):
