@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
-from sturctures import Fixation
+from structures import Fixation
 import sqlite3
 
 WORLD_TS_COL = "timestamp [ns]"          
