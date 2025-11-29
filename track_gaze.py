@@ -115,8 +115,8 @@ if __name__ == "__main__":
     #parser.add_argument("output_video", help="Path for output annotated video")
     #args = parser.parse_args()
 
-    input_video = "./AcquisitionsEyeTracker/sujet1_f-42e0d11a/e0b2c246_0.0-138.011.mp4"
-    output_video = "overlay.mp4"
+    input_video = "../AcquisitionsEyeTracker/sujet1_f-42e0d11a/e0b2c246_0.0-138.011.mp4"
+    output_video = "gaze_overlay.mp4"
     db_path = "database.sqlite"
 
     annotate_video(input_video, output_video, db_path)
