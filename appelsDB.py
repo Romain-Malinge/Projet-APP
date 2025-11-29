@@ -32,3 +32,33 @@ def load_world_timestamps_db(db_path: str) -> np.ndarray:
     conn.close()
 
     return rows
+
+def load_fixations_db(db_path: str) -> List[Fixation]:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute(f"""
+        SELECT
+            {FIX_START_COL},
+            {FIX_END_COL},
+            {FIX_X_COL},
+            {FIX_Y_COL}
+        FROM fixations
+        ORDER BY {FIX_START_COL} ASC;
+                   """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    fixations: List[Fixation] = []
+    for i, row in enumerate(rows):
+        fix = Fixation(
+            fixation_id=i,
+            start=float(row[0]),
+            end=float(row[1]),
+            x=float(row[2]),
+            y=float(row[3]),
+        )
+        fixations.append(fix)
+
+    return fixations
