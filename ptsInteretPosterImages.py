@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
-from sturctures import PosterRef
+from structures import PosterRef
 
 
 def load_posters(poster_dir: str, sift: cv2.SIFT) -> List[PosterRef]:
