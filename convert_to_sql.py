@@ -43,7 +43,7 @@ def insert_csv_into_table(cursor, table_name, header, rows):
     )
 
 
-def csv_to_sqlite(csv_folder, sqlite_path):
+def csv_to_sqlite(csv_folder, sqlite_path, verbose=True):
     """Load all CSV files in a folder into a SQLite database."""
     conn = sqlite3.connect(sqlite_path)
     cursor = conn.cursor()
@@ -55,7 +55,8 @@ def csv_to_sqlite(csv_folder, sqlite_path):
         csv_path = os.path.join(csv_folder, filename)
         table_name = os.path.splitext(filename)[0]  # filename without extension
 
-        print(f"Importing {filename} -> table '{table_name}'")
+        if verbose:
+            print(f"Importing {filename} -> table '{table_name}'")
 
         with open(csv_path, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     #parser.add_argument("sqlite_path", help="Output SQLite database path")
     #args = parser.parse_args()
 
-    csv_folder = "./AcquisitionsEyeTracker/sujet1_f-42e0d11a"
+    csv_folder = "./data/sujet2_f-835bf855"
     sqlite_path = "database.sqlite"
 
     csv_to_sqlite(csv_folder, sqlite_path)
