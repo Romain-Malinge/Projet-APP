@@ -1,13 +1,16 @@
 import cv2
+import os
 import numpy as np
 import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
 from ptsInteretPosterImages import load_posters
+from convert_to_sql import csv_to_sqlite
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["sujet1_f-42e0d11a", "sujet2_f-835bf855", "sujet3_m-84ce1158", "sujet4_m-fee537df", "sujet5_m-671cf44e", "sujet6_m-0b355b51"]
+VIDEO_FILEMNAMES = ["e0b2c246_0.0-138.011.mp4", "b7bd6c34_0.0-271.583.mp4", "422f10f2_0.0-247.734.mp4", "2fb8301a_0.0-71.632.mp4", "585d8df7_0.0-229.268.mp4", "429d311a_0.0-267.743.mp4"]
 POSTERS_DIR = f"{WORKING_DIR}/Affiches"
 OUTPUT_DETECTIONS_CSV = "output/poster_detections.csv"
 
@@ -23,6 +26,11 @@ def detect_posters_in_video(display = False, sujet_index: int = 0):
 
     sift = cv2.SIFT_create()
     bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+
+    # Création de la DB SQLite si elle n'existe pas déjà
+    if not os.path.exists(f"{WORKING_DIR}/database{sujet_index+1}.sqlite"):
+        print(f"[INFO] Création de la DB SQLite pour le sujet {sujet_index+1}...")
+        csv_to_sqlite(f"{WORKING_DIR}/{SUJET_NAMES[sujet_index]}", f"{WORKING_DIR}/database{sujet_index+1}.sqlite", display)
 
     # 1) Posters
     posters = load_posters(POSTERS_DIR, sift)
