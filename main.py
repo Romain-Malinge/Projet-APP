@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
-from ptsInterretPosterImages import load_posters
+from ptsInteretPosterImages import load_posters
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["sujet1_f-42e0d11a", "sujet2_f-835bf855", "sujet3_m-84ce1158", "sujet4_m-fee537df", "sujet5_m-671cf44e", "sujet6_m-0b355b51"]
