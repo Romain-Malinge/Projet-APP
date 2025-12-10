@@ -1,44 +1,85 @@
 import plotly.graph_objects as go
 import numpy as np
 from PIL import Image
+from heat_map_utils import *
+
+
+
+def step_heat_map(x, y, nom, trace=False):
+
+    # Charger l'image
+    affiche_path = f'./data/Affiches/{nom}.png'
+    poster = Image.open(affiche_path)
+    W, H = poster.size
+
+    # Charger des points de test
+    x, y = traitement_points(x, y, W, H)
+
+    # Calculer la densité
+    z = heat_map_density(x, y, W, H, 300)
+
+    if trace:
+        show_points_on_poster(affiche_path, x, y)
+
+    show_heat_map_on_poster(affiche_path, z)
+
+
 
 
 
 def heat_map_density(x, y, W, H, distance=200):
-
     # Initialiser la matrice de densité
     z = np.zeros((H, W))
 
-    # initialiser le masque de distance
-    mask = np.zeros((distance, distance))
-
-    # Remplir le masque avec des valeurs décroissantes en fonction de la distance au centre
+    # Créer le masque de distance
     center = distance // 2
-    for i in range(distance):
-        for j in range(distance):
-            dist = np.sqrt((i - center) ** 2 + (j - center) ** 2)
-            if dist < center:
-                mask[i, j] = (center - dist) / center
+    mask = np.zeros((distance, distance))
+    
+    # Remplir le masque avec des valeurs décroissantes
+    y_indices, x_indices = np.ogrid[:distance, :distance]
+    dist_from_center = np.sqrt((y_indices - center) ** 2 + (x_indices - center) ** 2)
+    mask = np.maximum(0, (center - dist_from_center) / center)
 
-    # Ajouter la contribution de chaque point de regard à la matrice de densité
+    # Ajouter la contribution de chaque point de regard
     for i in range(len(x)):
-        x_pos = int(x[i])
-        y_pos = int(y[i])
+        try:
+            if np.isnan(x[i]) or np.isnan(y[i]):
+                continue
 
-        # Définir les limites pour appliquer le masque
-        x_start = max(0, x_pos - distance // 2)
-        x_end = min(W, x_pos + distance // 2)
-        y_start = max(0, y_pos - distance // 2)
-        y_end = min(H, y_pos + distance // 2)
+            x_pos = int(x[i])
+            y_pos = int(y[i])
 
-        # Définir les limites du masque à appliquer
-        mask_x_start = max(0, distance // 2 - x_pos)
-        mask_x_end = mask_x_start + (x_end - x_start)
-        mask_y_start = max(0, distance // 2 - y_pos)
-        mask_y_end = mask_y_start + (y_end - y_start)
+            # Définir les limites pour appliquer le masque
+            x_start = max(0, x_pos - center)
+            x_end = min(W, x_pos + center)
+            y_start = max(0, y_pos - center)
+            y_end = min(H, y_pos + center)
 
-        # Ajouter le masque à la matrice de densité
-        z[y_start:y_end, x_start:x_end] += mask[mask_y_start:mask_y_end, mask_x_start:mask_x_end]
+            # Vérifier si les limites sont valides
+            if x_end <= x_start or y_end <= y_start:
+                continue
+
+            # Calculer les dimensions
+            region_width = x_end - x_start
+            region_height = y_end - y_start
+
+            # Définir les limites du masque
+            mask_x_start = max(0, center - x_pos)
+            mask_y_start = max(0, center - y_pos)
+            
+            mask_x_end = mask_x_start + region_width
+            mask_y_end = mask_y_start + region_height
+
+            # Extraire la portion du masque
+            mask_portion = mask[mask_y_start:mask_y_end, mask_x_start:mask_x_end]
+            
+            # Ajouter au résultat
+            z[y_start:y_end, x_start:x_end] += mask_portion
+            
+        except Exception as e:
+            # Log l'erreur et continuer avec le point suivant
+            print(f"Erreur avec le point {i} (x={x[i]}, y={y[i]}): {e}")
+            continue
 
     return z
 
