@@ -1,12 +1,12 @@
 import cv2
 import time
 import numpy as np
-from appelsDB import load_from_db, DB_PATH, FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, WORLD_TS_COL, WORLD_TS
+from appelsDB import load_from_db, FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, WORLD_TS_COL, WORLD_TS
 from undistort import undistort_frame, load_camera_calibration, undistort_points
 
 def SIFT_on_fixations(
     data_folder: str,
-    db_path: str = DB_PATH,
+    db_path: str,
     video_filename: str = "e0b2c246_0.0-138.011.mp4",
     table: str = "fixations",
     world_table: str = WORLD_TS,
@@ -15,7 +15,13 @@ def SIFT_on_fixations(
     """
     Pour chaque fixation dans la base de données, extraire un crop autour du point de fixation
     dans la vidéo undistordue, puis appliquer SIFT pour détecter des keypoints et des descripteurs.
-    Retourne une liste de dictionnaires contenant les résultats pour chaque fixation.
+    Retourne une liste de dictionnaires contenant les résultats pour chaque fixation :
+    {
+        "fix_index": index de la fixation,
+        "frame_num": numéro de la frame dans la vidéo,
+        "keypoints": liste des keypoints SIFT détectés,
+        "descriptors": descripteurs SIFT associés aux keypoints,
+    }
     """
     # Charger les fixations et timestamp de référence
     fixations = load_from_db(db_path, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL], table)
@@ -87,6 +93,5 @@ def SIFT_on_fixations(
     return results
 
 if __name__ == "__main__":
-    # Exécution d'exemple, limiter à 10 fixations pour test rapide
-    res = SIFT_on_fixations("./data/sujet2_f-835bf855", video_filename="b7bd6c34_0.0-271.583.mp4")
+    res = SIFT_on_fixations("./data/sujet2_f-835bf855", db_path="./data/sujet2_f-835bf855/database2.sqlite", video_filename="b7bd6c34_0.0-271.583.mp4")
     print(f"Traitement terminé : {len(res)} fixations traitées")
