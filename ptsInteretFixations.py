@@ -10,7 +10,7 @@ def SIFT_on_fixations(
     video_filename: str = "e0b2c246_0.0-138.011.mp4",
     table: str = "fixations",
     world_table: str = WORLD_TS,
-    crop_size: int = 100,
+    crop_size: int = 1500,
 ):
     """
     Pour chaque fixation dans la base de données, extraire un crop autour du point de fixation
@@ -35,7 +35,7 @@ def SIFT_on_fixations(
 
     results = []
     for i, fixation in enumerate(fixations):
-
+        #if i>=200 : break # To test
         start_ts = float(fixation[0]) - reference_timestamp
         end_ts = float(fixation[1]) - reference_timestamp
         fix_x = float(fixation[2])
@@ -62,12 +62,12 @@ def SIFT_on_fixations(
         crop = und_frame[y0:y1, x0:x1].copy()
 
         # Appliquer SIFT sur crop avec OpenCV
-        sift = cv2.SIFT_create()
+        sift = cv2.ORB.create(nfeatures=2000)
         keypoints, descriptors = sift.detectAndCompute(crop, None)
-        print(f"Fixation {i}: {len(keypoints)} keypoints détectés.")
+        #print(f"Fixation {i}: {len(keypoints)} keypoints détectés.")
 
-        if len(keypoints) == 0:
-            # Ignore this fixation if no keypoints found
+        if len(keypoints) <= 1500:
+            # Ignore this fixation if not enough keypoints found
             # cv2.rectangle(und_frame, (x0, y0), (x1, y1), (0, 255, 0), 2)
             # cv2.circle(und_frame, (cx, cy), 10, (0, 0, 255), 2)
             # cv2.imshow("Undistorted Frame", und_frame)
@@ -75,6 +75,7 @@ def SIFT_on_fixations(
             pass
         else:
             entry = {
+                "frame" : crop,
                 "fix_index": i,
                 "frame_num": mid_frame_num,
                 "keypoints": keypoints,
