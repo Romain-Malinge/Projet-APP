@@ -99,7 +99,7 @@ def match_all(all_posters,frame_video,kp_desc_all_posters):
             #_, descriptors_warped = apply_orb(video_warped)
             #matches = match_keypoints(descriptors_warped,desc_i)
             #pourcentage_match = 100*len(matches)/len(desc_i)
-            print(pourcentage_match)
+            # print(pourcentage_match)
             if pourcentage_match > pourcentage_match_max and pourcentage_match >= 20:
                 pourcentage_match_max = pourcentage_match
                 id_best_match = i

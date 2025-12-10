@@ -1,0 +1,7 @@
+section id,recording id,recording name,wearer id,wearer name,section start time [ns],section end time [ns],start event name,end event name
+429d311a-cdb1-4639-9e4c-0c7b2251f426,0b355b51-adff-4cfb-a6ad-2a29749f9976,Sujet6_M,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763459444683000000,1763459712426000000,recording.begin,recording.end
+e0b2c246-195c-41f2-a3eb-f387f9f86d9a,42e0d11a-5676-4755-bf47-0bbe4d84aceb,Sujet1_F,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763456862813000000,1763457000824000000,recording.begin,recording.end
+585d8df7-9b98-40a7-814f-c176df0e0bf3,671cf44e-5286-4d4a-94c9-b51d9573123e,Sujet5_M,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763459181362000000,1763459410630000000,recording.begin,recording.end
+b7bd6c34-3ed4-4349-bd4e-469c79f1cfa5,835bf855-49fa-49c3-b4d9-e413906f819e,Sujet2_F,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763457552925000000,1763457824508000000,recording.begin,recording.end
+422f10f2-5d5d-4b5d-a230-8118bc01d66d,84ce1158-bb23-4673-800a-37da1fd3c8ae,Sujet3_M,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763457939865000000,1763458187599000000,recording.begin,recording.end
+2fb8301a-69c8-4d63-aea0-0a1a7507e5ff,fee537df-fca2-47a0-98ba-cc4ccce3758a,Sujet4_M,0e63592f-d3de-4162-be3c-0f94c6d24975,Benoit,1763459063296000000,1763459134928000000,recording.begin,recording.end

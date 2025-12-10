@@ -83,7 +83,7 @@ if __name__ == "__main__":
     #parser.add_argument("sqlite_path", help="Output SQLite database path")
     #args = parser.parse_args()
 
-    csv_folder = "./data/sujet2_f-835bf855"
-    sqlite_path = "./data/database2.sqlite"
+    csv_folder = "./data/sujet1_f-42e0d11a"
+    sqlite_path = "./data/database1.sqlite"
 
     csv_to_sqlite(csv_folder, sqlite_path)

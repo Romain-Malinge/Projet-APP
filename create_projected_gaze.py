@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 import match_images
-from create_projected_gaze import projected_gaze
+# from create_projected_gaze import projected_gaze
 from ptsInteretFixations import *
 from appelsDB import load_from_db
 from heat_map import *
@@ -44,8 +44,8 @@ if __name__ == "__main__":
                 images.append(img)
                 
     res = ORB_on_fixations("./data/sujet1_f-42e0d11a", db_path="./data/database1.sqlite", video_filename="e0b2c246_0.0-138.011.mp4")
-    # ind_alea = np.random.randint(0,len(res))
-    ind_alea = 263
+    ind_alea = np.random.randint(0,len(res))
+    # ind_alea = 263
     print(ind_alea)
     image_test = res[ind_alea]["frame"]
     h, w = image_test.shape[:2]

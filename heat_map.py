@@ -8,7 +8,7 @@ from heat_map_utils import *
 def step_heat_map(x, y, nom, trace=False):
 
     # Charger l'image
-    affiche_path = f'./data/Affiches/{nom}.png'
+    affiche_path = f'./data/Affiches/{nom}'
     poster = Image.open(affiche_path)
     W, H = poster.size
 
@@ -113,19 +113,52 @@ def show_points_on_poster(affiche_path, x, y, plot_W=400):
 
     # Créer des frames pour l'animation
     frames = []
-    for i in range(1, n_points + 1):
-        frame = go.Frame(
-            data=[
-                go.Scatter(x=x[:i], y=y[:i], mode='markers', marker=dict(color='red', size=6)),
-                go.Scatter(x=x[:i], y=y[:i], mode='lines', line=dict(color='red', width=2), hoverinfo='skip')
-            ],
-            name=str(i)
-        )
-        frames.append(frame)
+    link_to_prev = True
 
-    # Ajouter le premier point/ligne
-    fig.add_trace(go.Scatter(x=[x[0]], y=[y[0]], mode='markers', marker=dict(color='red', size=6)))
-    fig.add_trace(go.Scatter(x=[x[0]], y=[y[0]], mode='lines', line=dict(color='red', width=2), hoverinfo='skip'))
+    # Ajouter le premier point s'il est valide
+    if not (np.isnan(x[0]) or np.isnan(y[0])):
+        fig.add_trace(go.Scatter(
+            x=[x[0]], y=[y[0]], 
+            mode='markers',
+            marker=dict(color='red', size=6)
+        ))
+    else:
+        link_to_prev = False
+
+    for i in range(1, n_points):
+
+        # Si le point actuel est NaN → on coupe la ligne
+        if np.isnan(x[i]) or np.isnan(y[i]):
+            link_to_prev = False
+            continue
+
+        # Scatter des points jusqu'à i
+        scatter_points = go.Scatter(
+            x=x[:i+1], 
+            y=y[:i+1],
+            mode='markers',
+            marker=dict(color='red', size=6)
+        )
+
+        frame_data = [scatter_points]
+
+        # Ajouter ligne seulement si on n’est pas en rupture
+        if link_to_prev:
+            line = go.Scatter(
+                x=x[:i+1],
+                y=y[:i+1],
+                mode='lines',
+                line=dict(color='red', width=2),
+                hoverinfo='skip'
+            )
+            frame_data.append(line)
+
+        frames.append(go.Frame(data=frame_data, name=str(i)))
+
+        # Le prochain point pourra être lié au précédent
+        link_to_prev = True
+
+    
 
     # Ajouter les frames à la figure
     fig.frames = frames
