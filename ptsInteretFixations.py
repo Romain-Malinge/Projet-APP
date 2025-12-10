@@ -4,7 +4,7 @@ import numpy as np
 from appelsDB import *
 from undistort import undistort_frame, load_camera_calibration, undistort_points
 
-def SIFT_on_fixations(
+def ORB_on_fixations(
     data_folder: str,
     db_path: str,
     video_filename: str = "e0b2c246_0.0-138.011.mp4",
@@ -14,13 +14,13 @@ def SIFT_on_fixations(
 ):
     """
     Pour chaque fixation dans la base de données, extraire un crop autour du point de fixation
-    dans la vidéo undistordue, puis appliquer SIFT pour détecter des keypoints et des descripteurs.
+    dans la vidéo undistordue, puis appliquer ORB pour détecter des keypoints et des descripteurs.
     Retourne une liste de dictionnaires contenant les résultats pour chaque fixation :
     {
         "fix_index": index de la fixation,
         "frame_num": numéro de la frame dans la vidéo,
-        "keypoints": liste des keypoints SIFT détectés,
-        "descriptors": descripteurs SIFT associés aux keypoints,
+        "keypoints": liste des keypoints ORB détectés,
+        "descriptors": descripteurs ORB associés aux keypoints,
     }
     """
     # Charger les fixations et timestamp de référence
@@ -96,5 +96,5 @@ def SIFT_on_fixations(
     return results
 
 if __name__ == "__main__":
-    res = SIFT_on_fixations("./data/sujet2_f-835bf855", db_path="./data/sujet2_f-835bf855/database2.sqlite", video_filename="b7bd6c34_0.0-271.583.mp4")
+    res = ORB_on_fixations("./data/sujet2_f-835bf855", db_path="./data/database2.sqlite", video_filename="b7bd6c34_0.0-271.583.mp4")
     print(f"Traitement terminé : {len(res)} fixations traitées")

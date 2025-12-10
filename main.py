@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
 from ptsInteretPosterImages import load_posters
 from convert_to_sql import csv_to_sqlite
-from ptsInteretFixations import SIFT_on_fixations
+from ptsInteretFixations import *
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["sujet1_f-42e0d11a", "sujet2_f-835bf855", "sujet3_m-84ce1158", "sujet4_m-fee537df", "sujet5_m-671cf44e", "sujet6_m-0b355b51"]
@@ -62,10 +62,6 @@ def detect_posters_in_video(display = False, sujet_index: int = 0):
         cv2.destroyAllWindows()
 
     # 2) Vidéo et fixations
-    res = SIFT_on_fixations(
-        data_folder=f"{WORKING_DIR}/{SUJET_NAMES[sujet_index]}",
-        db_path=db_path,
-        video_filename=f"{VIDEO_FILENAMES[sujet_index]}")
     
     # 
     # 3) Heatmap
