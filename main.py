@@ -7,6 +7,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
 from ptsInteretPosterImages import load_posters
 from convert_to_sql import csv_to_sqlite
+from heat_map import step_heat_map
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["sujet1_f-42e0d11a", "sujet2_f-835bf855", "sujet3_m-84ce1158", "sujet4_m-fee537df", "sujet5_m-671cf44e", "sujet6_m-0b355b51"]
@@ -62,6 +63,10 @@ def detect_posters_in_video(display = False, sujet_index: int = 0):
     # 2) Vidéo et fixations
 
     # 3) Heatmap
+    x = [1000]
+    y = [1000]
+    poster_name = "Bell"
+    step_heat_map(x, y, poster_name)
 
 
 if __name__ == "__main__":
