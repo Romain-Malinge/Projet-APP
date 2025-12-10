@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Any, Optional
+from typing import List, Optional, Sequence, Tuple, Any
 from structures import Fixation
 import sqlite3
 
@@ -16,23 +16,43 @@ FIX_X_IS_NORMALIZED = False              # True si x,y ∈ [0,1], False si déj�
 DB_PATH = "database.sqlite"
 WORLD_TS = "world_timestamps"
 
+def load_from_db(
+    db_path: str,
+    cols: List[str],
+    table: str,
+    where_clause: Optional[str] = None,
+    where_params: Optional[Sequence[Any]] = None,
+) -> np.ndarray:
+    """Load selected columns from table, optionally filtered by where_clause.
 
-def load_from_db(db_path: str, cols: List[str], table: str) -> np.ndarray:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
+    - cols: list of column names (validated).
+    - where_clause: SQL fragment to go after WHERE (use ? placeholders for params).
+      Example: 'id = ? AND status = ?' or 'name LIKE ?'
+    - where_params: sequence of parameter values matching the placeholders.
+    Returns a numpy.ndarray with shape (n_rows, len(cols)).
+    """
+    # validate/escape identifiers (columns and table)
     cols_escaped = ', '.join([f'"{col}"' for col in cols])
-    
-    cursor.execute(f"""
-        SELECT
-            {cols_escaped}
-        FROM {table}""")
-    
-    rows = cursor.fetchall()
-    arr = np.array(rows)
-    conn.close()
+    table_escaped = table
 
-    return rows
+    sql = f"SELECT {cols_escaped} FROM {table_escaped}"
+    params: Tuple[Any, ...] = ()
+    if where_clause:
+        sql += " WHERE " + where_clause
+        params = tuple(where_params or ())
+
+    conn = sqlite3.connect(db_path)
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    # numpy array
+    arr = np.array(rows, dtype=object)
+    return arr
+
 
 def load_fixations_db(db_path: str) -> List[Fixation]:
     conn = sqlite3.connect(db_path)

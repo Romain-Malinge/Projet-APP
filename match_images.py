@@ -70,18 +70,18 @@ def match_homography(img_source, img_dest, kp_desc_src, kp_desc_dest, show=True)
                 h, w = img_dest.shape[:2]
                 img_warped = cv2.warpPerspective(img_source, H, (w, h))
                 match_and_display(img_warped,img_dest, max_matches=50)
-            return 100*mask.sum()/len(src_pts)
+            return 100*mask.sum()/len(src_pts), H
         else:
             print("Attention : homographie impossible à calculer")
-            return None
+            return None, None
     else:
         print("Attention : pas assez de matches pour l'homographie")
-        return None
+        return None, None
     
 def match_all(all_posters,frame_video,kp_desc_all_posters):
     """
     Fait les matches de la frame de la vidéo avec tous les posters
-    et renvoie le poster avec le plus de matches (-1 si aucun ne convient)
+    Renvoie le poster avec le plus de matches (-1 si aucun ne convient), avec l'homographie associée.
     all_posters : liste de toutes les affiches
     frame_video : frame de la vidéo avec distorsion corrigée
     kp_desc_frame : (keypoints,descripteurs) de la frame
@@ -89,20 +89,22 @@ def match_all(all_posters,frame_video,kp_desc_all_posters):
     """
     id_best_match = -1
     pourcentage_match_max = 0.0
+    H_max = None
     frame_video = cv2.cvtColor(frame_video,cv2.COLOR_BGR2GRAY)
     kp_frame,desc_frame = apply_orb(frame_video)
     for i in range(len(all_posters)):
         kp_i,desc_i = kp_desc_all_posters[i]
-        pourcentage_match = match_homography(frame_video,all_posters[i],(kp_frame,desc_frame),(kp_i,desc_i),False)
+        pourcentage_match, H = match_homography(frame_video,all_posters[i],(kp_frame,desc_frame),(kp_i,desc_i),False)
         if pourcentage_match is not None:
             #_, descriptors_warped = apply_orb(video_warped)
             #matches = match_keypoints(descriptors_warped,desc_i)
             #pourcentage_match = 100*len(matches)/len(desc_i)
             print(pourcentage_match)
-            if pourcentage_match > pourcentage_match_max and pourcentage_match >= 30:
+            if pourcentage_match > pourcentage_match_max and pourcentage_match >= 20:
                 pourcentage_match_max = pourcentage_match
                 id_best_match = i
-    return id_best_match
+                H_max = H
+    return id_best_match, H_max
             
         
     

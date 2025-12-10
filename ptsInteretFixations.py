@@ -1,7 +1,7 @@
 import cv2
 import time
 import numpy as np
-from appelsDB import load_from_db, FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, WORLD_TS_COL, WORLD_TS
+from appelsDB import *
 from undistort import undistort_frame, load_camera_calibration, undistort_points
 
 def SIFT_on_fixations(
@@ -25,6 +25,7 @@ def SIFT_on_fixations(
     """
     # Charger les fixations et timestamp de référence
     fixations = load_from_db(db_path, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL], table)
+
     world_timestamps = load_from_db(db_path, [WORLD_TS_COL], world_table)
     reference_timestamp = float(world_timestamps[0][0])
 
@@ -81,8 +82,9 @@ def SIFT_on_fixations(
             pass
         else:
             entry = {
-                "frame" : crop,
                 "fix_index": i,
+                "frame" : crop,
+                "und_frame" : und_frame,
                 "frame_num": mid_frame_num,
                 "keypoints": keypoints,
                 "descriptors": descriptors,
