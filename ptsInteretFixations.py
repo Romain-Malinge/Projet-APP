@@ -24,7 +24,7 @@ def ORB_on_fixations(
     }
     """
     # Charger les fixations et timestamp de référence
-    fixations = load_from_db(db_path, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL], table)
+    fixations = load_from_db(db_path, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, "fixation id"], table)
 
     world_timestamps = load_from_db(db_path, [WORLD_TS_COL], world_table)
     reference_timestamp = float(world_timestamps[0][0])
@@ -47,6 +47,7 @@ def ORB_on_fixations(
         end_ts = float(fixation[1]) - reference_timestamp
         fix_x = float(fixation[2])
         fix_y = float(fixation[3])
+        fix_index = int(fixation[4])
 
         mid_ts = (start_ts + end_ts) / 2.0
         mid_frame_num = int((mid_ts / 1e9) * fps)
@@ -82,7 +83,7 @@ def ORB_on_fixations(
             pass
         else:
             entry = {
-                "fix_index": i,
+                "fix_index": fix_index,
                 "frame" : crop,
                 "und_frame" : und_frame,
                 "frame_num": mid_frame_num,

@@ -74,9 +74,9 @@ def undistort_video(camera_file, input_video, output_video, db_path):
 
 
 if __name__ == "__main__":
-    camera_file = "../AcquisitionsEyeTracker/sujet1_f-42e0d11a/scene_camera.json"
-    input_video = "../AcquisitionsEyeTracker/sujet1_f-42e0d11a/e0b2c246_0.0-138.011.mp4"
-    output_video = "undistorted.mp4"
-    db_path = "database.sqlite"
+    camera_file = "./data/sujet1_f-42e0d11a/scene_camera.json"
+    input_video = "./data/sujet1_f-42e0d11a/e0b2c246_0.0-138.011.mp4"
+    output_video = "./data/undistorted1.mp4"
+    db_path = "./data/database1.sqlite"
 
     undistort_video(camera_file, input_video, output_video, db_path)
