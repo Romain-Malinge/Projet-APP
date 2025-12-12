@@ -2,9 +2,13 @@ import cv2
 import numpy as np
 
 
-def apply_orb(image):
-    # Image en niveaux de gris
-    orb = cv2.ORB.create(nfeatures = 3000)
+def apply_orb(image, n):
+    """
+    Applique orb à une image
+    image : image en niveaux de gris
+    n : nombre de features max
+    """
+    orb = cv2.ORB.create(nfeatures = n)
     keypoints,descriptors = orb.detectAndCompute(image, None)
     return keypoints, descriptors
 
@@ -32,8 +36,8 @@ def match_and_display(img1, img2, max_matches=50):
     max_matches : nombre maximum de correspondances à afficher.
     """
     # Charger les images en niveaux de gris
-    kp1,d1 = apply_orb(img1)
-    kp2,d2 = apply_orb(img2)
+    kp1,d1 = apply_orb(img1,3000)
+    kp2,d2 = apply_orb(img2,3000)
     matches = match_keypoints(d1,d2)
     h, w = img1.shape[:2]
     max_size = 800  # taille max pour l’affichage
@@ -78,7 +82,7 @@ def match_homography(img_source, img_dest, kp_desc_src, kp_desc_dest, show=True)
         print("Attention : pas assez de matches pour l'homographie")
         return None, None
     
-def match_all(all_posters,frame_video,kp_desc_all_posters):
+def match_all(all_posters,frame_video,kp_desc_all_posters,seuil, n):
     """
     Fait les matches de la frame de la vidéo avec tous les posters
     Renvoie le poster avec le plus de matches (-1 si aucun ne convient), avec l'homographie associée.
@@ -86,24 +90,24 @@ def match_all(all_posters,frame_video,kp_desc_all_posters):
     frame_video : frame de la vidéo avec distorsion corrigée
     kp_desc_frame : (keypoints,descripteurs) de la frame
     kp_desc_all_posters : liste des (keypoints,descripteurs) de tous les posters
+    seuil : seuil minimum pour détecter un poster
+    n : nombre de features à trouver
     """
     id_best_match = -1
     pourcentage_match_max = 0.0
     H_max = None
     frame_video = cv2.cvtColor(frame_video,cv2.COLOR_BGR2GRAY)
-    kp_frame,desc_frame = apply_orb(frame_video)
+    kp_frame,desc_frame = apply_orb(frame_video,n)
     for i in range(len(all_posters)):
         kp_i,desc_i = kp_desc_all_posters[i]
         pourcentage_match, H = match_homography(frame_video,all_posters[i],(kp_frame,desc_frame),(kp_i,desc_i),False)
         if pourcentage_match is not None:
-            #_, descriptors_warped = apply_orb(video_warped)
-            #matches = match_keypoints(descriptors_warped,desc_i)
-            #pourcentage_match = 100*len(matches)/len(desc_i)
-            # print(pourcentage_match)
-            if pourcentage_match > pourcentage_match_max and pourcentage_match >= 20:
+            #print(pourcentage_match)
+            if pourcentage_match > pourcentage_match_max and pourcentage_match >= seuil:
                 pourcentage_match_max = pourcentage_match
                 id_best_match = i
                 H_max = H
+    #print(pourcentage_match_max)
     return id_best_match, H_max
             
         

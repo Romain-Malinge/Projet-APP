@@ -10,7 +10,9 @@ def ORB_on_fixations(
     video_filename: str = "e0b2c246_0.0-138.011.mp4",
     table: str = "fixations",
     world_table: str = WORLD_TS,
-    crop_size: int = 1500,
+    crop_size: int = 1000,
+    nb_f : int = 3000,
+    nb_min_kp : int = 1500
 ):
     """
     Pour chaque fixation dans la base de données, extraire un crop autour du point de fixation
@@ -42,7 +44,7 @@ def ORB_on_fixations(
 
     results = []
     for i, fixation in enumerate(fixations):
-        #if i>=200 : break # To test
+        if i>=200 : break # To test
         start_ts = float(fixation[0]) - reference_timestamp
         end_ts = float(fixation[1]) - reference_timestamp
         fix_x = float(fixation[2])
@@ -70,11 +72,11 @@ def ORB_on_fixations(
         crop = und_frame[y0:y1, x0:x1].copy()
 
         # Appliquer SIFT sur crop avec OpenCV
-        sift = cv2.ORB.create(nfeatures=2000)
+        sift = cv2.ORB.create(nfeatures=nb_f)
         keypoints, descriptors = sift.detectAndCompute(crop, None)
         #print(f"Fixation {i}: {len(keypoints)} keypoints détectés.")
 
-        if len(keypoints) <= 1500:
+        if len(keypoints) <= nb_min_kp:
             # Ignore this fixation if not enough keypoints found
             # cv2.rectangle(und_frame, (x0, y0), (x1, y1), (0, 255, 0), 2)
             # cv2.circle(und_frame, (cx, cy), 10, (0, 0, 255), 2)
