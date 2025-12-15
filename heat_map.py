@@ -16,7 +16,7 @@ def step_heat_map(x, y, nom, trace=False):
     x, y = traitement_points(x, y, W, H)
 
     # Calculer la densité
-    z = heat_map_density(x, y, W, H, 300)
+    z = heat_map_density(x, y, W, H)
 
     if trace:
         show_points_on_poster(affiche_path, x, y)
@@ -27,7 +27,7 @@ def step_heat_map(x, y, nom, trace=False):
 
 
 
-def heat_map_density(x, y, W, H, distance=200):
+def heat_map_density(x, y, W, H, distance=400):
     # Initialiser la matrice de densité
     z = np.zeros((H, W))
 
@@ -39,6 +39,8 @@ def heat_map_density(x, y, W, H, distance=200):
     y_indices, x_indices = np.ogrid[:distance, :distance]
     dist_from_center = np.sqrt((y_indices - center) ** 2 + (x_indices - center) ** 2)
     mask = np.maximum(0, (center - dist_from_center) / center)
+
+    
 
     # Ajouter la contribution de chaque point de regard
     for i in range(len(x)):
@@ -229,10 +231,10 @@ def show_heat_map_on_poster(affiche_path, z, plot_W=400):
         colorscale=[
             [0.0, "rgba(255,255,255,0.0)"],
             [0.2, "rgba(0,0,255,0.4)"],
-            [0.4, "rgba(0,255,0,0.9)"],
-            [0.6, "rgba(255,255,0,0.9)"],
-            [0.8, "rgba(255,165,0,0.9)"],
-            [1.0, "rgba(255,0,0,0.9)"]
+            [0.4, "rgba(0,255,0,0.8)"],
+            [0.6, "rgba(255,255,0,0.8)"],
+            [0.8, "rgba(255,165,0,0.8)"],
+            [1.0, "rgba(255,0,0,0.8)"]
         ]
     ))
 
@@ -249,3 +251,6 @@ def show_heat_map_on_poster(affiche_path, z, plot_W=400):
         showlegend=False)
 
     fig.show()
+
+    # sauvegarder la figure en png
+    fig.write_image(affiche_path.replace('.jpg', '_heatmap.png').replace('.png', '_heatmap.png'))
