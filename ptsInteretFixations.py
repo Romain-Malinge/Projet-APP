@@ -44,7 +44,7 @@ def ORB_on_fixations(
 
     results = []
     for i, fixation in enumerate(fixations):
-        if i>=200 : break # To test
+        #if i>=200 : break # To test
         start_ts = float(fixation[0]) - reference_timestamp
         end_ts = float(fixation[1]) - reference_timestamp
         fix_x = float(fixation[2])

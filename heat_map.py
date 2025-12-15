@@ -24,7 +24,15 @@ def step_heat_map(x, y, nom, trace=False):
     show_heat_map_on_poster(affiche_path, z)
 
 
+def sum_dict(dicts):
+    dict_total = dicts[0].copy()
 
+    for dict_k in dicts[1:]:
+        for k, v in dict_k.items():
+            dict_total[k][0].extend(v[0])
+            dict_total[k][1].extend(v[1])
+
+    return dict_total
 
 
 def heat_map_density(x, y, W, H, distance=400):
@@ -87,7 +95,7 @@ def heat_map_density(x, y, W, H, distance=400):
 
 
 
-def show_points_on_poster(affiche_path, x, y, plot_W=400):
+def show_video_points_on_poster(affiche_path, x, y, plot_W=400):
 
     # Changer le chemin de l'image selon le nom de l'affiche
     poster = Image.open(affiche_path)
@@ -254,3 +262,54 @@ def show_heat_map_on_poster(affiche_path, z, plot_W=400):
 
     # sauvegarder la figure en png
     fig.write_image(affiche_path.replace('.jpg', '_heatmap.png').replace('.png', '_heatmap.png'))
+
+
+
+def show_points_on_poster(affiche_path, x, y, plot_W=400):
+    # Changer le chemin de l'image selon le nom de l'affiche
+    poster = Image.open(affiche_path)
+    W, H = poster.size  # dimensions réelles de l'image
+    n_points = len(x)
+
+    # Création du graphe
+    fig = go.Figure()
+
+    # Ajouter l'image en dessous
+    fig.add_layout_image(
+        dict(
+            source=poster,
+            x=0,
+            y=H,
+            sizex=W,
+            sizey=H,
+            xref="x",
+            yref="y",
+            sizing="stretch",
+            opacity=0.8,
+            layer="below"
+        )
+    )
+
+    # Ajouter les points
+    fig.add_trace(go.Scatter(
+        x=x, y=y, 
+        mode='markers',
+        marker=dict(color='red', size=6)
+    ))
+
+    # Ajuster les axes pour correspondre à l'image
+    fig.update_xaxes(range=[0, W], showgrid=False, zeroline=False, visible=False)
+    fig.update_yaxes(range=[0, H], showgrid=False, zeroline=False, visible=False, scaleanchor="x")
+
+    # Rendu propre : enlever marges
+    fig.update_layout(
+        template="plotly_dark",
+        margin=dict(l=0, r=0, t=0, b=0),
+        width=plot_W,
+        height=int(plot_W * (H / W)),
+        showlegend=False)
+    
+    fig.show()
+
+    # sauvegarder la figure en png
+    fig.write_image(affiche_path.replace('.jpg', '_points.png').replace('.png', '_points.png'))
