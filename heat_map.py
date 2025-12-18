@@ -24,6 +24,29 @@ def step_heat_map(x, y, nom, trace=False):
     show_heat_map_on_poster(affiche_path, z)
 
 
+def step_heat_map_all(x, y, noms, trace=False):
+
+    W, H = poster.size
+    Z = np.zeros((H, W))
+
+    # Charger l'image
+    for nom in noms:
+        affiche_path = f'./data/Affiches/{nom}'
+        poster = Image.open(affiche_path)
+
+        # Charger des points de test
+        x, y = traitement_points(x, y, W, H)
+
+        # Calculer la densité
+        z = heat_map_density(x, y, W, H)
+        Z += z
+
+    if trace:
+        show_points_on_poster(affiche_path, x, y)
+
+    show_heat_map_on_poster(affiche_path, z)
+
+
 def sum_dict(dicts):
     dict_total = dicts[0].copy()
 
@@ -33,6 +56,8 @@ def sum_dict(dicts):
             dict_total[k][1].extend(v[1])
 
     return dict_total
+
+
 
 
 def heat_map_density(x, y, W, H, distance=400):
