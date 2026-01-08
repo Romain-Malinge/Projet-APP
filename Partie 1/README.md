@@ -1,4 +1,4 @@
-# Projet-APP
+# Projet-APP - Partie 1
 
 ## Installation des données
 
@@ -11,8 +11,3 @@ data/
 ├── sujet1_f-42e0d11a
 ├── ...
 ```
-
-## Installation des packages
-
-- Créer un venv
-- pip install -r requirements.txt
