@@ -6,9 +6,9 @@ FFMPEG_PATH = r"C:/ffmpeg/bin/ffmpeg.exe"
 VIDEO_PATH = r".\Partie 2\data\2025-11-20_15-30-11-a3a383b4\95cbe6dd_0.0-323.503.mp4"
 OUTPUT_DIR = r".\Partie 2\videos\velo_1"
 
-FPS = 30          # ex: 10 pour limiter à 10 fps, None pour tout
-START_FRAME = 94   # frame de départ (0 = début)
-END_FRAME = 500     # frame de fin (None = jusqu'à la fin)
+FPS = 30            # ex: 10 pour limiter à 10 fps, None pour tout
+START_FRAME = 0     # frame de départ (0 = début)
+END_FRAME = 300     # frame de fin (None = jusqu'à la fin)
 
 START_NUMBER = 0
 QUALITY = 2
@@ -55,7 +55,7 @@ process = subprocess.run(
 )
 
 if process.returncode != 0:
-    print("❌ Erreur FFmpeg")
+    print("Erreur FFmpeg")
     print(process.stderr)
 else:
-    print("✅ Extraction terminée avec succès")
+    print("Extraction terminée avec succès")
