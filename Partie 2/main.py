@@ -10,13 +10,14 @@ import matplotlib.patches as mpatches
 from matplotlib.animation import FuncAnimation
 from convert_to_sql import csv_to_sqlite
 from appelsDB import *
+import time
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["2025-11-20_15-30-11-a3a383b4", "2025-11-20_15-40-17-10b70589"]
 VIDEO_FILENAMES = ["95cbe6dd_0.0-323.503.mp4", "3238656b_0.0-265.674.mp4"]
 
 sujet_id = 0
-start_frame = 150
+start_frame = 65
 
 sujet_id = 0
 start_frame = 1000 
@@ -29,10 +30,6 @@ if not os.path.exists(DB_PATH):
     print(f"[INFO] Création de la DB SQLite pour le sujet {sujet_id+1}...")
     print(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}",DB_PATH)
     csv_to_sqlite(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}", DB_PATH, False)
-
-
-plt.ion()  # Mode interactif ON
-fig, ax = plt.subplots(figsize=(15, 10))
 
 def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     """Version non-blocante de plot_segmentation"""
@@ -80,15 +77,18 @@ def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     plt.draw()
     plt.pause(0.01)  # Pause très courte pour rafraîchir
 
-def segmentation_from_frame(pil_image):
+def segmentation_from_frame(pil_image, verbose=False):
+    start_time = time.time()
     inputs = processor(images=pil_image, return_tensors="pt")
-        
+    
     with torch.no_grad():
         outputs = model(**inputs)
     
     segmentation = processor.post_process_semantic_segmentation(outputs, target_sizes=[(height, width)])[0]
     seg_np = segmentation.cpu().numpy().astype(np.uint8)
-
+    if verbose:
+        end_time = time.time()
+        print(f"Segmentation effectuée en {end_time - start_time:.2f} secondes")
     return seg_np
 
 # Load model
@@ -101,6 +101,8 @@ reference_timestamp = float(world_timestamps[0][0])
 # Charger les fixations et timestamp de référence
 fixations = load_from_db(DB_PATH, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, "fixation id"], "fixations")
 
+plt.ion()  # Mode interactif ON
+fig, ax = plt.subplots(figsize=(15, 10))
 
 # Ouvrir vidéo
 video_path = f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}/{VIDEO_FILENAMES[sujet_id]}"
@@ -111,9 +113,6 @@ if not cap.isOpened():
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-
-
 
 print(f"Démarrage frame {start_frame} sur {total_frames} frames totales")
 
@@ -134,7 +133,7 @@ try:
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_frame)
         
-        seg_np = segmentation_from_frame(pil_image)
+        seg_np = segmentation_from_frame(pil_image, True)
         
         plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
         
