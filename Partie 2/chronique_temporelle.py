@@ -9,13 +9,29 @@ class ChroniqueTemporelle:
         self.labels = []
         self.data = {}  # label -> liste de frames (int)
 
-    def ajouter_label(self, label, frames):
+    def __init__(self, labels):
         """
-        Ajoute un label et ses positions de frames (liste d'entiers).
-        Exemple: ajouter_label('voiture', [100, 150, 200, 250, 300, 350, 400, 450, 500])
+        Initialise la chronique avec des labels définis à l'avance.
+
+        labels : liste de strings
+        Exemple : ['voiture', 'piéton', 'route']
         """
-        self.labels.append(label)
-        self.data[label] = sorted(frames)
+        self.labels = list(labels)
+        self.data = {label: [] for label in self.labels}
+
+    def ajouter_frame(self, label, frame):
+        """
+        Ajoute une frame (int) pour un label donné.
+        """
+        if label not in self.data:
+            raise ValueError(f"Label inconnu : {label}")
+
+    def ajouter_frames(self, label, frames):
+        """
+        Ajoute plusieurs frames pour un label donné.
+        """
+        if label not in self.data:
+            raise ValueError(f"Label inconnu : {label}")
 
     def afficher(self, titre="Analyse oculométrique sur frames labellisées", largeur=0.8):
         """
