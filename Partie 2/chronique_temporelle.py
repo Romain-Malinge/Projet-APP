@@ -2,13 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class ChroniqueTemporelle:
-    def __init__(self):
-        """
-        Initialise la chronique avec une liste de labels et un dictionnaire de données.
-        """
-        self.labels = []
-        self.data = {}  # label -> liste de frames (int)
-
     def __init__(self, labels):
         """
         Initialise la chronique avec des labels définis à l'avance.
@@ -25,6 +18,7 @@ class ChroniqueTemporelle:
         """
         if label not in self.data:
             raise ValueError(f"Label inconnu : {label}")
+        self.data[label].append(frame)
 
     def ajouter_frames(self, label, frames):
         """
@@ -32,6 +26,7 @@ class ChroniqueTemporelle:
         """
         if label not in self.data:
             raise ValueError(f"Label inconnu : {label}")
+        self.data[label].extend(frames)
 
     def afficher(self, titre="Analyse oculométrique sur frames labellisées", largeur=0.8):
         """
@@ -59,17 +54,19 @@ class ChroniqueTemporelle:
         ax.set_yticklabels(self.labels)
         ax.set_xlabel('Numéro de Frame')
         ax.set_title(titre)
-        ax.set_xlim(0, max(max(d) for d in self.data.values()) * 1.1 if self.data else 500)
+        all_frames = [f for d in self.data.values() for f in d]
+        max_frame = max(all_frames) if all_frames else 500
+        ax.set_xlim(0, max_frame * 1.1)
         ax.grid(axis='x', alpha=0.3)
         plt.tight_layout()
         plt.show()
 
 if __name__ == "__main__":
     # Exemple d'utilisation (données approximatives basées sur l'image) [code:1]
-    chrono = ChroniqueTemporelle()
-    chrono.ajouter_label('voiture', [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 180, 240, 320, 380, 440, 500])
-    chrono.ajouter_label('piéton', [110, 160, 220, 290, 360])
-    chrono.ajouter_label('route', [130, 200, 270, 340])
-    chrono.ajouter_label('panneau', [150, 210])
-    chrono.ajouter_label('bâtiment', [170])
+    chrono = ChroniqueTemporelle(['voiture', 'piéton', 'route', 'panneau', 'bâtiment'])
+    chrono.ajouter_frames('voiture', [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 180, 240, 320, 380, 440, 500])
+    chrono.ajouter_frames('piéton', [110, 160, 220, 290, 360])
+    chrono.ajouter_frames('route', [130, 200, 270, 340])
+    chrono.ajouter_frames('panneau', [150, 210])
+    chrono.ajouter_frames('bâtiment', [170])
     chrono.afficher()

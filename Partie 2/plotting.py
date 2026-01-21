@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+import matplotlib.patches as mpatches
 
 def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     """Version non-blocante de plot_segmentation"""
@@ -48,7 +49,7 @@ def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     plt.draw()
     plt.pause(0.01)  # Pause très courte pour rafraîchir
 
-def show_segmentation_opencv(original_rgb, segmentation, alpha=0.5):
+def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0.5):
     """
     Affichage OpenCV de la segmentation sémantique en overlay
     """
@@ -66,6 +67,9 @@ def show_segmentation_opencv(original_rgb, segmentation, alpha=0.5):
     color_mask = np.zeros_like(original_rgb, dtype=np.uint8)
     for class_id, color in cityscapes_colors.items():
         color_mask[segmentation == class_id] = color
+
+    # Cercle de couleur rouge aux coordonnées gaze_x, gaze_y
+    cv2.circle(original_rgb, (int(gaze_x), int(gaze_y)), 20, (0, 0, 255), -1)
 
     # Overlay
     overlay = cv2.addWeighted(original_rgb, 1 - alpha, color_mask, alpha, 0)

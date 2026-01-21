@@ -7,17 +7,21 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from convert_to_sql import csv_to_sqlite
-from appelsDB import *
+from appelsDB import WORLD_TS_COL, WORLD_TS, load_from_db
 import time
 from plotting import plot_segmentation_non_blocking, show_segmentation_opencv
+from chronique_temporelle import ChroniqueTemporelle
+from track_gaze import find_gaze_for_frame
+import math
 
 WORKING_DIR = "data"
 SUJET_NAMES = ["2025-11-20_15-30-11-a3a383b4", "2025-11-20_15-40-17-10b70589"]
 VIDEO_FILENAMES = ["95cbe6dd_0.0-323.503.mp4", "3238656b_0.0-265.674.mp4"]
 
 sujet_id = 0
-start_frame = 65
-pas_frame = 10
+# Variables de temps en s
+start_temps = 25
+pas_temps = 0.25
 
 DB_PATH = f"{WORKING_DIR}/database{sujet_id+1}.sqlite"
 positions_all_posters = dict() # le resultat final
@@ -27,10 +31,6 @@ if not os.path.exists(DB_PATH):
     print(f"[INFO] Création de la DB SQLite pour le sujet {sujet_id+1}...")
     print(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}",DB_PATH)
     csv_to_sqlite(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}", DB_PATH, False)
-
-# Load model
-processor = AutoImageProcessor.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic", use_fast=True)
-model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic")
 
 def segmentation_from_frame(pil_image, verbose=False):
     start_time = time.time()
@@ -48,9 +48,17 @@ def segmentation_from_frame(pil_image, verbose=False):
 
 # Données gaze etc
 world_timestamps = load_from_db(DB_PATH, [WORLD_TS_COL], WORLD_TS)
-reference_timestamp = float(world_timestamps[0][0])
+reference_timestamp = int(world_timestamps[0][0])
 # Charger les fixations et timestamp de référence
-fixations = load_from_db(DB_PATH, [FIX_START_COL, FIX_END_COL, FIX_X_COL, FIX_Y_COL, "fixation id"], "fixations")
+gaze = load_from_db(DB_PATH, ["timestamp [ns]", "gaze x [px]", "gaze y [px]"], "gaze")
+gaze_ts = np.array(gaze[:, 0], dtype=np.int64)
+gaze_ts = gaze_ts - min(gaze_ts)
+gaze_xs = np.array(gaze[:, 1], dtype=float)
+gaze_ys = np.array(gaze[:, 2], dtype=float)
+
+# Load model
+processor = AutoImageProcessor.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic", use_fast=True)
+model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic")
 
 # plt.ion()  # Mode interactif ON
 # fig, ax = plt.subplots(figsize=(15, 10))
@@ -60,39 +68,57 @@ video_path = f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}/{VIDEO_FILENAMES[sujet_id]}
 cap = cv2.VideoCapture(video_path)
 if not cap.isOpened():
     raise RuntimeError(f"Impossible d'ouvrir la vidéo : {video_path}")
+fps = cap.get(cv2.CAP_PROP_FPS)
+# video_length = math.floor(cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps)
+# print(video_length)
 
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-print(f"Démarrage frame {start_frame} sur {total_frames} frames totales")
+# Init chronique temporelle
+cityscapes_labels = {
+        0: 'road', 1: 'sidewalk', 2: 'building', 3: 'wall', 4: 'fence', 
+        5: 'pole', 6: 'traffic light', 7: 'traffic sign', 8: 'vegetation', 
+        9: 'terrain', 10: 'sky', 11: 'person', 12: 'rider', 13: 'car', 
+        14: 'truck', 15: 'bus', 16: 'train', 17: 'motorcycle', 18: 'bicycle'
+    }
+chronique_temporelle = ChroniqueTemporelle(cityscapes_labels.values())
+
+print(f"Démarrage frame {int(start_temps * fps)} sur {total_frames} frames totales")
 
 # Positionner au start_frame
-cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
-
-frame_count = start_frame
-processed_count = 0
+curr_time = start_temps
+frame_count = 0
 
 try:
     while True:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(curr_time * fps))
         ret, frame = cap.read()
         if not ret:
             print("Fin de vidéo")
             break
         
         # Traitement frame
-        if frame_count % pas_frame == 0:
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            pil_image = Image.fromarray(rgb_frame)
-            
-            seg_np = segmentation_from_frame(pil_image, True)
-            
-            # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
-            show_segmentation_opencv(rgb_frame, seg_np)
-            
-            print(f"Frame {frame_count} traitée")
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(rgb_frame)
+        
+        seg_np = segmentation_from_frame(pil_image, True)
+
+        gaze_x, gaze_y = find_gaze_for_frame(curr_time * 1e9, gaze_ts, gaze_xs, gaze_ys)
+        
+        # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
+        show_segmentation_opencv(rgb_frame, seg_np, gaze_x, gaze_y)
+        
+        label_id = int(seg_np[int(gaze_y), int(gaze_x)])
+
+        if label_id in cityscapes_labels.keys():
+            chronique_temporelle.ajouter_frame(cityscapes_labels[label_id], int(curr_time * fps))
+        
+        print(f"Frame n°{int(curr_time * fps)} traitée : {cityscapes_labels[label_id]}")
         
         frame_count += 1
+        curr_time = curr_time + pas_temps
         
         # Délai optionnel pour contrôler la vitesse
         # plt.pause(0.1)  # 100ms entre frames (décommente si trop rapide)
@@ -103,4 +129,5 @@ except KeyboardInterrupt:
 cap.release()
 # plt.ioff()
 # plt.show(block=True)  # Garde la dernière image
-print(f"Traitement terminé : frames {start_frame} à {frame_count-1}")
+print("Traitement terminé")
+chronique_temporelle.afficher()
