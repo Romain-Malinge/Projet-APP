@@ -83,7 +83,12 @@ cityscapes_labels = {
         9: 'terrain', 10: 'sky', 11: 'person', 12: 'rider', 13: 'car', 
         14: 'truck', 15: 'bus', 16: 'train', 17: 'motorcycle', 18: 'bicycle'
     }
-chronique_temporelle = ChroniqueTemporelle(cityscapes_labels.values())
+
+regroupements = {
+    0: 0, 1: 0, 2: 2, 3: 2, 4: 2, 5: 7, 6: 7, 8: 8, 9: 8, 10: 10, 11: 11, 12: 18, 13: 13, 14: 13, 15: 13, 16: None, 17: 18, 18: 18
+}
+new_labels = {0: 'route', 2: 'batiment', 7: 'panneau', 8: 'vegetation', 10: 'ciel', 11: 'piéton', 13: '4 roues', 18: '2 roues'}
+chronique_temporelle = ChroniqueTemporelle(new_labels.values())
 
 print(f"Démarrage frame {int(start_temps * fps)} sur {total_frames} frames totales")
 
@@ -113,7 +118,9 @@ try:
         label_id = int(seg_np[int(gaze_y), int(gaze_x)])
 
         if label_id in cityscapes_labels.keys():
-            chronique_temporelle.ajouter_frame(cityscapes_labels[label_id], int(curr_time * fps))
+            new_label = regroupements[label_id]
+            if new_label is not None :
+                chronique_temporelle.ajouter_frame(new_labels[new_label], int(curr_time * fps))
         
         print(f"Frame n°{int(curr_time * fps)} traitée : {cityscapes_labels[label_id]}")
         
