@@ -32,7 +32,7 @@ class ChroniqueTemporelle:
         """
         Affiche le graphique horizontal similaire à l'image.
         - Barre par label, positionnée aux frames indiquées.
-        - Couleurs automatiques vertes/bleues par défaut.
+        - Axe x démarrant à la première frame annotée.
         """
         if not self.data:
             print("Aucune donnée à afficher.")
@@ -41,25 +41,39 @@ class ChroniqueTemporelle:
         y_pos = np.arange(len(self.labels))
         fig, ax = plt.subplots(figsize=(12, max(6, len(self.labels)*0.5)))
 
-        couleurs = plt.cm.Set3(np.linspace(0, 1, len(self.labels)))
+        couleurs = plt.cm.tab10(np.linspace(0, 1, len(self.labels)))
+
+        all_frames = []
 
         for i, label in enumerate(self.labels):
             frames = self.data[label]
             if frames:
-                x_centers = np.array(frames)
-                ax.barh(i, largeur, left=x_centers - largeur/2, height=0.6,
-                        label=label, color=couleurs[i], alpha=0.8)
+                frames = np.array(frames)
+                all_frames.extend(frames)
+                ax.barh(
+                    i,
+                    largeur,
+                    left=frames - largeur / 2,
+                    height=0.6,
+                    color=couleurs[i],
+                    alpha=0.9
+                )
 
         ax.set_yticks(y_pos)
         ax.set_yticklabels(self.labels)
         ax.set_xlabel('Numéro de Frame')
         ax.set_title(titre)
-        all_frames = [f for d in self.data.values() for f in d]
-        max_frame = max(all_frames) if all_frames else 500
-        ax.set_xlim(0, max_frame * 1.1)
+
+        if all_frames:
+            min_frame = min(all_frames)
+            max_frame = max(all_frames)
+            marge = (max_frame - min_frame) * 0.05  # 5% de marge visuelle
+            ax.set_xlim(min_frame - marge, max_frame + marge)
+
         ax.grid(axis='x', alpha=0.3)
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == "__main__":
     # Exemple d'utilisation (données approximatives basées sur l'image) [code:1]
