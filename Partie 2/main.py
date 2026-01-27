@@ -20,7 +20,7 @@ VIDEO_FILENAMES = ["95cbe6dd_0.0-323.503.mp4", "3238656b_0.0-265.674.mp4"]
 
 sujet_id = 0
 # Variables de temps en s
-start_temps = 25
+start_temps = 5
 pas_temps = 0.25
 
 DB_PATH = f"{WORKING_DIR}/database{sujet_id + 1}.sqlite"
@@ -115,6 +115,7 @@ regroupements = {
     4: 2,
     5: 7,
     6: 7,
+    7: 7,
     8: 8,
     9: 8,
     10: 10,
@@ -162,7 +163,7 @@ try:
         gaze_x, gaze_y = find_gaze_for_frame(curr_time * 1e9, gaze_ts, gaze_xs, gaze_ys)
 
         # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
-        show_segmentation_opencv(rgb_frame, seg_np, gaze_x, gaze_y)
+        # show_segmentation_opencv(rgb_frame, seg_np, gaze_x, gaze_y)
 
         label_id = int(seg_np[int(gaze_y), int(gaze_x)])
 
