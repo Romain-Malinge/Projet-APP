@@ -23,28 +23,32 @@ sujet_id = 0
 start_temps = 25
 pas_temps = 0.25
 
-DB_PATH = f"{WORKING_DIR}/database{sujet_id+1}.sqlite"
-positions_all_posters = dict() # le resultat final
+DB_PATH = f"{WORKING_DIR}/database{sujet_id + 1}.sqlite"
+positions_all_posters = dict()  # le resultat final
 
 # Création de la DB SQLite si elle n'existe pas déjà
 if not os.path.exists(DB_PATH):
-    print(f"[INFO] Création de la DB SQLite pour le sujet {sujet_id+1}...")
-    print(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}",DB_PATH)
+    print(f"[INFO] Création de la DB SQLite pour le sujet {sujet_id + 1}...")
+    print(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}", DB_PATH)
     csv_to_sqlite(f"{WORKING_DIR}/{SUJET_NAMES[sujet_id]}", DB_PATH, False)
+
 
 def segmentation_from_frame(pil_image, verbose=False):
     start_time = time.time()
     inputs = processor(images=pil_image, return_tensors="pt")
-    
+
     with torch.no_grad():
         outputs = model(**inputs)
-    
-    segmentation = processor.post_process_semantic_segmentation(outputs, target_sizes=[(height, width)])[0]
+
+    segmentation = processor.post_process_semantic_segmentation(
+        outputs, target_sizes=[(height, width)]
+    )[0]
     seg_np = segmentation.cpu().numpy().astype(np.uint8)
     if verbose:
         end_time = time.time()
         print(f"Segmentation effectuée en {end_time - start_time:.2f} secondes")
     return seg_np
+
 
 # Données gaze etc
 world_timestamps = load_from_db(DB_PATH, [WORLD_TS_COL], WORLD_TS)
@@ -57,8 +61,12 @@ gaze_xs = np.array(gaze[:, 1], dtype=float)
 gaze_ys = np.array(gaze[:, 2], dtype=float)
 
 # Load model
-processor = AutoImageProcessor.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic", use_fast=True)
-model = Mask2FormerForUniversalSegmentation.from_pretrained("facebook/mask2former-swin-large-cityscapes-semantic")
+processor = AutoImageProcessor.from_pretrained(
+    "facebook/mask2former-swin-large-cityscapes-semantic", use_fast=True
+)
+model = Mask2FormerForUniversalSegmentation.from_pretrained(
+    "facebook/mask2former-swin-large-cityscapes-semantic"
+)
 
 # plt.ion()  # Mode interactif ON
 # fig, ax = plt.subplots(figsize=(15, 10))
@@ -78,16 +86,57 @@ total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 # Init chronique temporelle
 cityscapes_labels = {
-        0: 'road', 1: 'sidewalk', 2: 'building', 3: 'wall', 4: 'fence', 
-        5: 'pole', 6: 'traffic light', 7: 'traffic sign', 8: 'vegetation', 
-        9: 'terrain', 10: 'sky', 11: 'person', 12: 'rider', 13: 'car', 
-        14: 'truck', 15: 'bus', 16: 'train', 17: 'motorcycle', 18: 'bicycle'
-    }
+    0: "road",
+    1: "sidewalk",
+    2: "building",
+    3: "wall",
+    4: "fence",
+    5: "pole",
+    6: "traffic light",
+    7: "traffic sign",
+    8: "vegetation",
+    9: "terrain",
+    10: "sky",
+    11: "person",
+    12: "rider",
+    13: "car",
+    14: "truck",
+    15: "bus",
+    16: "train",
+    17: "motorcycle",
+    18: "bicycle",
+}
 
 regroupements = {
-    0: 0, 1: 0, 2: 2, 3: 2, 4: 2, 5: 7, 6: 7, 8: 8, 9: 8, 10: 10, 11: 11, 12: 18, 13: 13, 14: 13, 15: 13, 16: None, 17: 18, 18: 18
+    0: 0,
+    1: 0,
+    2: 2,
+    3: 2,
+    4: 2,
+    5: 7,
+    6: 7,
+    8: 8,
+    9: 8,
+    10: 10,
+    11: 11,
+    12: 18,
+    13: 13,
+    14: 13,
+    15: 13,
+    16: None,
+    17: 18,
+    18: 18,
 }
-new_labels = {0: 'route', 2: 'batiment', 7: 'panneau', 8: 'vegetation', 10: 'ciel', 11: 'piéton', 13: '4 roues', 18: '2 roues'}
+new_labels = {
+    0: "route",
+    2: "batiment",
+    7: "panneau",
+    8: "vegetation",
+    10: "ciel",
+    11: "piéton",
+    13: "4 roues",
+    18: "2 roues",
+}
 chronique_temporelle = ChroniqueTemporelle(new_labels.values())
 
 print(f"Démarrage frame {int(start_temps * fps)} sur {total_frames} frames totales")
@@ -103,30 +152,32 @@ try:
         if not ret:
             print("Fin de vidéo")
             break
-        
+
         # Traitement frame
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_frame)
-        
+
         seg_np = segmentation_from_frame(pil_image, True)
 
         gaze_x, gaze_y = find_gaze_for_frame(curr_time * 1e9, gaze_ts, gaze_xs, gaze_ys)
-        
+
         # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
         show_segmentation_opencv(rgb_frame, seg_np, gaze_x, gaze_y)
-        
+
         label_id = int(seg_np[int(gaze_y), int(gaze_x)])
 
         if label_id in cityscapes_labels.keys():
             new_label = regroupements[label_id]
-            if new_label is not None :
-                chronique_temporelle.ajouter_frame(new_labels[new_label], int(curr_time * fps))
-        
+            if new_label is not None:
+                chronique_temporelle.ajouter_frame(
+                    new_labels[new_label], int(curr_time * fps)
+                )
+
         print(f"Frame n°{int(curr_time * fps)} traitée : {cityscapes_labels[label_id]}")
-        
+
         frame_count += 1
         curr_time = curr_time + pas_temps
-        
+
         # Délai optionnel pour contrôler la vitesse
         # plt.pause(0.1)  # 100ms entre frames (décommente si trop rapide)
 

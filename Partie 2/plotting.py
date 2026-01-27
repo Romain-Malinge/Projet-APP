@@ -49,7 +49,7 @@ def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     plt.draw()
     plt.pause(0.01)  # Pause très courte pour rafraîchir
 
-def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0.5):
+def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0.7):
     """
     Affichage OpenCV de la segmentation sémantique en overlay
     """
