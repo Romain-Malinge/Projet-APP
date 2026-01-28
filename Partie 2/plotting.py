@@ -49,12 +49,12 @@ def plot_segmentation_non_blocking(ax, original, segmentation, frame_num):
     plt.draw()
     plt.pause(0.01)  # Pause très courte pour rafraîchir
 
-def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0.7):
+def show_segmentation_opencv(original_rgb, segmentation, gaze_x = None, gaze_y = None, alpha=0.7, write = False, writer = None):
     """
     Affichage OpenCV de la segmentation sémantique en overlay
     """
     cityscapes_colors = {
-        0: (128, 64, 128), 1: (244, 35, 232), 2: (70, 70, 70),
+        0: (128, 64, 128), 1: (244, 35, 232), 2: (0, 80, 100),
         3: (102, 102, 156), 4: (190, 153, 153), 5: (153, 153, 153),
         6: (250, 170, 30), 7: (220, 220, 0), 8: (107, 142, 35),
         9: (152, 251, 152), 10: (70, 130, 180), 11: (220, 20, 60),
@@ -69,7 +69,8 @@ def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0
         color_mask[segmentation == class_id] = color
 
     # Cercle de couleur rouge aux coordonnées gaze_x, gaze_y
-    cv2.circle(original_rgb, (int(gaze_x), int(gaze_y)), 20, (0, 0, 255), -1)
+    if gaze_x is not None and gaze_y is not None:
+        cv2.circle(original_rgb, (int(gaze_x), int(gaze_y)), 20, (0, 0, 255), -1)
 
     # Overlay
     overlay = cv2.addWeighted(original_rgb, 1 - alpha, color_mask, alpha, 0)
@@ -78,6 +79,12 @@ def show_segmentation_opencv(original_rgb, segmentation, gaze_x, gaze_y, alpha=0
     overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
 
     cv2.imshow("Semantic Segmentation", overlay_bgr)
+    
+    if writer is not None:
+        writer.write(overlay_bgr)
+
+    if write:
+        cv2.imwrite("output.png", overlay_bgr)
 
     cv2.waitKey(1)
 
