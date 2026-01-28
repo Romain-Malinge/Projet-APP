@@ -74,6 +74,28 @@ class ChroniqueTemporelle:
         plt.tight_layout()
         plt.show()
 
+    def save(self, filepath):
+        """
+        Sauvegarde les données de la chronique dans un fichier texte.
+        filepath : chemin du fichier de sauvegarde
+        """
+        with open(filepath, 'w') as f:
+            for label, frames in self.data.items():
+                f.write(f"{label}: {frames}\n")
+
+    def load(self, filepath):
+        """
+        Charge les données de la chronique depuis un fichier texte.
+        filepath : chemin du fichier de chargement
+        """
+        with open(filepath, 'r') as f:
+            for line in f:
+                label, frames_str = line.strip().split(': ')
+                frames = eval(frames_str)
+                if label in self.data:
+                    self.data[label] = frames
+                else:
+                    print(f"Label inconnu dans le fichier : {label}")
 
 if __name__ == "__main__":
     # Exemple d'utilisation (données approximatives basées sur l'image) [code:1]
@@ -83,4 +105,5 @@ if __name__ == "__main__":
     chrono.ajouter_frames('route', [130, 200, 270, 340])
     chrono.ajouter_frames('panneau', [150, 210])
     chrono.ajouter_frames('bâtiment', [170])
+    # chrono.save("chronique_exemple.txt")
     chrono.afficher()

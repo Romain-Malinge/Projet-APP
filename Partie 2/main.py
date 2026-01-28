@@ -77,6 +77,7 @@ cap = cv2.VideoCapture(video_path)
 if not cap.isOpened():
     raise RuntimeError(f"Impossible d'ouvrir la vidéo : {video_path}")
 fps = cap.get(cv2.CAP_PROP_FPS)
+print(cv2.CAP_PROP_FRAME_COUNT)
 # video_length = math.floor(cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps)
 # print(video_length)
 
@@ -158,9 +159,14 @@ try:
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_frame)
 
-        seg_np = segmentation_from_frame(pil_image, True)
+        gaze_result = find_gaze_for_frame(curr_time * 1e9, gaze_ts, gaze_xs, gaze_ys)
+        if gaze_result is None:
+            print(f"Frame n°{int(curr_time * fps)} skippée")
+            curr_time = curr_time + pas_temps
+            continue
+        gaze_x, gaze_y = gaze_result
 
-        gaze_x, gaze_y = find_gaze_for_frame(curr_time * 1e9, gaze_ts, gaze_xs, gaze_ys)
+        seg_np = segmentation_from_frame(pil_image, True)
 
         # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
         # show_segmentation_opencv(rgb_frame, seg_np, gaze_x, gaze_y)
@@ -189,4 +195,5 @@ cap.release()
 # plt.ioff()
 # plt.show(block=True)  # Garde la dernière image
 print("Traitement terminé")
+chronique_temporelle.save(f"chronique_sujet{sujet_id + 1}_start{start_temps}_pas{pas_temps}.txt")
 chronique_temporelle.afficher()
