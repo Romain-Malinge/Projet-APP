@@ -20,7 +20,7 @@ VIDEO_FILENAMES = ["95cbe6dd_0.0-323.503.mp4", "3238656b_0.0-265.674.mp4"]
 
 sujet_id = 0
 # Variables de temps en s
-start_temps = 255
+start_temps = 50
 pas_temps = 0.25
 
 def regrouper_classes(seg, regroupements):
@@ -111,7 +111,7 @@ def segmentation_from_frame(pil_image, processor, model, width, height, verbose=
         print(f"Segmentation effectuée en {end_time - start_time:.2f} secondes")
     return seg_np
 
-def compute_video(fps, total_frames, cap, gaze_ts, gaze_xs, gaze_ys, processor, model, width, height):
+def compute_video(fps, total_frames, cap, gaze_ts, gaze_xs, gaze_ys, processor, model, width, height, writer):
     chronique_temporelle = ChroniqueTemporelle(new_labels.values())
 
     print(f"Démarrage frame {int(start_temps * fps)} sur {total_frames} frames totales")
@@ -152,7 +152,7 @@ def compute_video(fps, total_frames, cap, gaze_ts, gaze_xs, gaze_ys, processor, 
 
             new_seg = regrouper_classes(seg_np, regroupements)
             # plot_segmentation_non_blocking(ax, rgb_frame, seg_np, frame_count)
-            show_segmentation_opencv(rgb_frame, new_seg, gaze_x, gaze_y)
+            show_segmentation_opencv(rgb_frame, new_seg, gaze_x, gaze_y, writer = writer)
 
             print(f"Frame n°{int(curr_time * fps)} traitée : {cityscapes_labels[label_id]}")
 
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     # Compute on video
-    compute_video(fps, total_frames, cap, gaze_ts, gaze_xs, gaze_ys, processor, model, width, height)
+    compute_video(fps, total_frames, cap, gaze_ts, gaze_xs, gaze_ys, processor, model, width, height, writer)
 
     # Compute on one frame
     # frame_num = 7870
