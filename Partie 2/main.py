@@ -1,3 +1,4 @@
+import math
 from transformers import SegformerFeatureExtractor, SegformerForSemanticSegmentation
 from PIL import Image
 import cv2
@@ -11,6 +12,16 @@ from chronique_temporelle import ChroniqueTemporelle
 #         9: 'terrain', 10: 'sky', 11: 'person', 12: 'rider', 13: 'car', 
 #         14: 'truck', 15: 'bus', 16: 'train', 17: 'motorcycle', 18: 'bicycle'
 #     }
+
+cityscapes_colors = {
+        0: (128, 64, 128), 1: (244, 35, 232), 2: (0, 80, 100),
+        3: (102, 102, 156), 4: (190, 153, 153), 5: (153, 153, 153),
+        6: (250, 170, 30), 7: (220, 220, 0), 8: (107, 142, 35),
+        9: (152, 251, 152), 10: (70, 130, 180), 11: (220, 20, 60),
+        12: (255, 0, 0), 13: (0, 0, 142), 14: (0, 0, 70),
+        15: (0, 60, 100), 16: (0, 80, 100),
+        17: (0, 0, 230), 18: (119, 11, 32)
+    }
 def get_palette(classes_to_keep):
     np.random.seed(42)
     # On crée une palette de taille = max_id + 1
@@ -75,11 +86,11 @@ def seg_former_on_video(video_path, db_path, max_seconds=15, skip_seconds=5, per
     feature_extractor, model = charger_modele()
     gaze_ts, xs, ys = charger_gaze(db_path)
     regroupements = {
-    0: 0, 1: 0, 2: 2, 3: 2, 4: 2, 5: 7, 6: 7, 8: 8, 9: 8, 10: None, 11: 11, 12: 18,
+    0: 0, 1: 0, 2: 2, 3: 2, 4: 2, 5: 7, 6: 7, 7: 7, 8: 8, 9: 8, 10: 10, 11: 11, 12: 18,
     13: 13, 14: 13, 15: 13, 16: None, 17: 18, 18: 18}
     classes_to_keep = {0: 'route', 2: 'batiment', 7: 'panneau', 8: 'vegetation', 13: '4 roues', 18: '2 roues',
-                       11: 'piéton'} #, 10: 'ciel'
-    palette = get_palette(classes_to_keep)
+                       11: 'piéton', 10: 'ciel'}
+    palette = cityscapes_colors
     chronique = ChroniqueTemporelle(classes_to_keep.values())
     # Paramètres vidéo
     cap = cv2.VideoCapture(video_path)
@@ -91,10 +102,9 @@ def seg_former_on_video(video_path, db_path, max_seconds=15, skip_seconds=5, per
     frame_count = 0
     target_size = (1024, 1024)
     # Enregistrer la vidéo
-    output_path = "video_segmentation2.mp4"
+    output_path = "video_segmentation_extrait.mp4"
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(output_path, fourcc, fps, target_size)
-
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret or frame_count >= max_frames:
@@ -109,7 +119,6 @@ def seg_former_on_video(video_path, db_path, max_seconds=15, skip_seconds=5, per
         target_size = (int(w * scale), int(h * scale))  # (largeur, hauteur)
         frame_resized = cv2.resize(frame, target_size)
 
-        
         seg, image = segmenter_frame(frame_resized, feature_extractor, model)
         seg_grouped = regrouper_classes(seg, regroupements)
         seg_filtered, color_seg = coloriser_segmentation(seg_grouped, image, classes_to_keep, palette)
@@ -125,7 +134,7 @@ def seg_former_on_video(video_path, db_path, max_seconds=15, skip_seconds=5, per
             print(f"Frame {frame_count}: Class Name: {class_name}")
             chronique.ajouter_frame(class_name, frame_count)
 
-        cv2.imshow("Segformer Overlay", overlay_bgr)
+        #cv2.imshow("Segformer Overlay", overlay_bgr)
         if overlay_bgr.shape[1] != 1024 or overlay_bgr.shape[0] != 1024:
             overlay_bgr = cv2.resize(overlay_bgr, (1024, 1024))
         writer.write(overlay_bgr)
@@ -142,9 +151,11 @@ if __name__ == "__main__":
     # 15min pour vidéo 1, 5min->305s avec skip=15s
     db_path = "./data/database1.sqlite" # Remplacer par le chemin de la base de données
     video_path = "./data/2025-11-20_15-30-11-a3a383b4/95cbe6dd_0.0-323.503.mp4" # Remplacer par le chemin de la vidéo
-    max_seconds = 10 # Durée maximale à traiter (en secondes)
-    skip_seconds = 15 # Nombre de secondes à sauter au début
+    max_seconds = 318 # Durée maximale à traiter (en secondes)
+    skip_seconds = 5 # Nombre de secondes à sauter au début
     percentage = 10 # Pourcentage de frames à traiter
     max_size = 800 # Taille maximale pour la fenêtre
     chronique_temporelle = seg_former_on_video(video_path, db_path, max_seconds, skip_seconds, percentage, max_size)
-    chronique_temporelle.afficher()
+    chronique_temporelle.save("chronique.txt")
+    chronique_temporelle.load("chronique.txt")
+    chronique_temporelle.afficher_more()
